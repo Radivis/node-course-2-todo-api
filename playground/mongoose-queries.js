@@ -25,7 +25,7 @@ const {User} = require('./../server/models/user');
 //   console.log('Todo', todo);
 // });
 
-// Todo.findById(id).then ((todo) => {
+// Todo.findById(id).then((todo) => {
 //   if (!todo) {
 //     return console.log('Id not found');
 //   }
@@ -38,7 +38,7 @@ if (!ObjectID.isValid(userId)) {
   console.log('User ID not valid');
 }
 
-User.findById(userId).then ((user) => {
+User.findById(userId).then((user) => {
   if (!user) {
     return console.log('User ID not found');
   }
