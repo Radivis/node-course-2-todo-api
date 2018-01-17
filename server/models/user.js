@@ -51,6 +51,7 @@ UserSchema.methods.toJSON = function() {
   return _.pick(userObject, ['_id', 'email']);
 };
 
+// The following is an instance method
 UserSchema.methods.generateAuthToken = function () {
   var user = this;
   // console.log('this user: ', JSON.stringify(user,undefined,2));
@@ -66,6 +67,28 @@ UserSchema.methods.generateAuthToken = function () {
     //console.log(token); works
     return token;
   });
+};
+
+// The following is a model method
+UserSchema.statics.findByToken = function(token) {
+  var User = this;
+  var decoded;
+
+  try {
+    decoded = jwt.verify(token, 'a.salt');
+  } catch(e) {
+    // return new Promise((resolve, reject) => {
+    //   reject();
+    // });
+    return Promise.reject('Authentication token verification failed');
+  }
+
+  return User.findOne({
+    '_id': decoded._id,
+    'tokens.token': token,
+    'tokens.access': 'auth'
+    })
+
 };
 
 var User = mongoose.model('User', UserSchema);
