@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 const bcrypt = require('bcryptjs');
 
+const {log} = require('../../logging/logging');
+
 // {
 //   email: 'andrew@example.com',
 //   password: 'gdsgdfhtzjgzkjtzikjgz',
@@ -55,17 +57,13 @@ UserSchema.methods.toJSON = function() {
 // The following is an instance method
 UserSchema.methods.generateAuthToken = function () {
   var user = this;
-  // console.log('this user: ', JSON.stringify(user,undefined,2));
+
   var access = 'auth';
   var token = jwt.sign({_id: user._id.toHexString(), access}, 'a.salt').toString();
 
-  // console.log(JSON.stringify(user,undefined, 2));
-
   user.tokens = user.tokens.concat([{access, token}]);
-  // console.log('user.tokens: ',user.tokens); works
 
   return user.save().then(() => {
-    //console.log(token); works
     return token;
   });
 };
@@ -77,24 +75,31 @@ UserSchema.statics.findByToken = function(token) {
 
   try {
     decoded = jwt.verify(token, 'a.salt');
+    // log('decoded variable is ' + JSON.stringify(decoded));
   } catch(e) {
     // return new Promise((resolve, reject) => {
     //   reject();
     // });
-    return Promise.reject('Authentication token verification failed');
+    log(3,'Error in function User.findByToken: User authentification failed. Reason: ' + JSON.stringify(e));
+    return Promise.reject('Authentication token verification failed, because: ' + JSON.stringify(e));
   }
+  log(2,'decoded variable is ' + JSON.stringify(decoded));
+
+  log('Success of function User.findByToken: User authentification succeeded for user ' + JSON.stringify(decoded));
 
   return User.findOne({
     '_id': decoded._id,
     'tokens.token': token,
     'tokens.access': 'auth'
-    })
+  });
 
 };
 
 var hashThen = (password, then) => {
   bcrypt.genSalt(10, (err, salt) => {
+    // log('Generating Salt ' + salt);
     bcrypt.hash(password, salt, (err, hashedPassword) => {
+      // log('Generating hashed password ' + hashedPassword + ' from password ' + password);
       then(hashedPassword);
     });
   });
@@ -102,9 +107,11 @@ var hashThen = (password, then) => {
 
 UserSchema.pre('save', function (next) {
   var user = this;
+  // log('Pre saving method called for user ' + user);
 
   if (user.isModified('password')) {
     hashThen(user.password, (hash) => {
+      log('user password ' + user.password + ' hashed to ' + hash);
       user.password = hash;
       next();
     });

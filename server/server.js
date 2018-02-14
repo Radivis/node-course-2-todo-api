@@ -98,11 +98,11 @@ app.patch('/todos/:id', (req, res) => {
 app.post('/users', (req, res) => {
   // console.log('req.body: ',req.body);
   var body = _.pick(req.body, ['email', 'password']);
-  // console.log('body: ',body);
+  console.log(2,'app.post: Requested body data is: ',body);
 
   var user = new User(body);
 
-  // console.log('user: ', user);
+  console.log(2,'user created: ', user);
 
   user.save().then(() => {
     return user.generateAuthToken();
