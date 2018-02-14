@@ -95,6 +95,29 @@ UserSchema.statics.findByToken = function(token) {
 
 };
 
+UserSchema.statics.findByCredentials = function (email, password) {
+  var User = this;
+
+  return User.findOne({email}).then((user) => {
+    if (!user) {
+      return Promise.reject();
+    }
+
+    return new Promise((resolve, reject) => {
+      log(1,'Password is' + password + '. Hashed password is: ' + user.password);
+      bcrypt.compare(password, user.password, function(err, res) {
+        if (res === true) {
+          log(2,'Password ' + password + ' does evaluate to hashed password ' + user.password);
+          resolve(user);
+        } else {
+          log(3,'Password ' + password + ' does not evaluate to hashed password ' + user.password);
+          reject(err);
+        }
+      });
+    });
+  });
+};
+
 var hashThen = (password, then) => {
   bcrypt.genSalt(10, (err, salt) => {
     // log('Generating Salt ' + salt);
