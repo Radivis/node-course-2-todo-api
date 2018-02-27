@@ -56,7 +56,7 @@ app.get('/todos/:id', authenticate, (req, res) => {
         return res.status(404).send()
       }
       return res.status(200).send({todo});
-    }).catch((e) => res.status(400).send());
+    }).catch((e) => res.status(400).send(e));
 });
 
 app.delete('/todos/:id', authenticate, (req,res) => {
@@ -73,7 +73,7 @@ app.delete('/todos/:id', authenticate, (req,res) => {
         return res.status(404).send()
       }
       return res.status(200).send({todo});
-    }).catch((e) => res.status(400).send());
+    }).catch((e) => res.status(400).send(e));
 
 });
 
@@ -98,7 +98,7 @@ app.patch('/todos/:id', authenticate, (req, res) => {
       return res.status(404).send();
     }
     return res.status(200).send({todo});
-  }).catch((e) => res.status(400).send());
+  }).catch((e) => res.status(400).send(e));
 
 });
 
@@ -135,7 +135,7 @@ app.post('/users/login', (req, res) => {
       res.header('x-auth', token).status(200).send(user);
     });
   }).catch((e) => {
-    res.status(400).send();
+    res.status(400).send(e);
   });
 
   // User.find({email: req.body.email}).then((user) => {
@@ -149,8 +149,12 @@ app.post('/users/login', (req, res) => {
 app.delete('/users/me/token', authenticate, (req, res) => {
   req.user.removeToken(req.token).then(() => {
     res.status(200).send();
-  }, () => {
-    res.status(400).send();
+  }, (e) => {
+    log(3,'Deletion of user failed (landed in reject), because ' + JSON.stringify(error))
+    res.status(400).send(e);
+  }).catch((e) => {
+    log(3,'Deletion of user failed(landed in catch), because ' + JSON.stringify(error))
+    res.status(400).send(e);
   });
 });
 
